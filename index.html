@@ -34,6 +34,34 @@
             width: 100vw;
             height: 100vh;
             touch-action: none;
+            /* Enable advanced typographic features where supported */
+            font-kerning: normal;
+            font-variant-ligatures: common-ligatures contextual; /* modern ligatures */
+            font-feature-settings: "kern" 1, "liga" 1, "clig" 1, "calt" 1; /* explicit */
+            text-rendering: optimizeLegibility; /* hint for better kerning/ligatures */
+            font-synthesis: none; /* avoid synthetic bold/italics that can harm spacing */
+        }
+
+        /* Progressive enhancement guard in case future syntax changes */
+        @supports (font-kerning: normal) {
+            body {
+                font-kerning: normal;
+            }
+        }
+
+        /* Only apply refined kerning & ligatures to proportional text (email) since monospace font doesn't benefit */
+        .email {
+            font-kerning: normal;
+            font-variant-ligatures: common-ligatures contextual;
+            font-feature-settings: "kern" 1, "liga" 1, "clig" 1, "calt" 1;
+            text-rendering: optimizeLegibility;
+            /* Light letter-spacing fallback when kerning not supported */
+            letter-spacing: 0.02em;
+        }
+
+        /* When native kerning is confirmed, neutralize fallback letter-spacing */
+        html.kerning .email {
+            letter-spacing: 0;
         }
 
         #gameCanvas {
@@ -87,6 +115,16 @@
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+
+        // Kerning feature detection: apply class to enable refined styling
+        (function(){
+            try {
+                const support = CSS && CSS.supports && (CSS.supports('font-kerning: normal') || CSS.supports('font-feature-settings: "kern" 1'));
+                if (support) {
+                    document.documentElement.classList.add('kerning');
+                }
+            } catch(e) { /* silent */ }
+        })();
         
         const CELL_SIZE = 6;
         let GRID_WIDTH;
