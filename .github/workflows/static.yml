@@ -35,12 +35,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Minify HTML
+      - name: Minify HTML/CSS/JS (aggressive)
         run: |
           mkdir -p dist
           COMMIT_SHA=${GITHUB_SHA::7}
           BUILD_TIME=$(date -u +'%Y-%m-%dT%H:%M:%SZ')
-          # Run minifier with additional aggressive options
           npx html-minifier-terser \
             --collapse-whitespace \
             --collapse-inline-tag-whitespace \
@@ -52,14 +51,11 @@ jobs:
             --remove-tag-whitespace \
             --use-short-doctype \
             --minify-css true \
-            --minify-js true \
+            --minify-js '{"compress":{"passes":2,"drop_console":true,"typeofs":false},"mangle":true}' \
             index.html > dist/index.html
-          # Prepend build metadata comment for traceability (won't affect rendering)
           sed -i '1s;^;<!-- build: '$COMMIT_SHA' '$BUILD_TIME' -->\n;' dist/index.html
-          # Output size comparison for debugging
           echo "Original size:" $(wc -c < index.html) "bytes"
-            echo "Minified size:" $(wc -c < dist/index.html) "bytes"
-          # Show first 300 chars of minified file
+          echo "Minified size:" $(wc -c < dist/index.html) "bytes"
           head -c 300 dist/index.html | sed 's/$/\n.../'
       - name: Setup Pages
         uses: actions/configure-pages@v5
