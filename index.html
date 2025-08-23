@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Intelligence Inc</title>
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --cell-active: #a0a0a0;
+            --grid-color: #e0e0e0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-color: #000000;
+                --cell-active: #606060;
+                --grid-color: #2a2a2a;
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-color);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            touch-action: none;
+        }
+
+        #gameCanvas {
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            cursor: crosshair;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .email {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 5px 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        
+        .email a {
+            color: var(--cell-active);
+            text-decoration: none;
+            transition: opacity 0.2s ease;
+        }
+        
+        .email a:hover {
+            opacity: 0.8;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            .email {
+                background: rgba(0, 0, 0, 0.3);
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="email"><a href="mailto:hello@intelligence.inc">hello@intelligence.inc</a></div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        const CELL_SIZE = 6;
+        let GRID_WIDTH;
+        let GRID_HEIGHT;
+        
+        let grid;
+        let nextGrid;
+        let isPlaying = true;
+        let generation = 0;
+        let animationId = null;
+        let lastTime = 0;
+        let updateInterval = 50;
+        let isDrawing = false;
+        
+        // INTELLIGENCE patterns for desktop and mobile
+        const INTELLIGENCE_PATTERNS = {
+            desktop: [
+                "                                                                ██                                                      ",
+                "  ██████                                 ████      ████         ██                                                      ",
+                "  ██████               ██                ████      ████         ██                                                      ",
+                "    ██                 ██                  ██        ██                                                                 ",
+                "    ██     ██ ████   ███████     ████      ██        ██       ████       ███ ██    ████    ██ ████      ████     ████   ",
+                "    ██     ███████   ███████    ██████     ██        ██       ████      ███████   ██████   ███████    ███████   ██████  ",
+                "    ██     ███   ██    ██      ██    ██    ██        ██         ██     ███  ███  ██    ██  ███   ██   ██    █  ██    ██ ",
+                "    ██     ██    ██    ██      ████████    ██        ██         ██     ██    ██  ████████  ██    ██  ██        ████████ ",
+                "    ██     ██    ██    ██      ████████    ██        ██         ██     ██    ██  ████████  ██    ██  ██        ████████ ",
+                "    ██     ██    ██    ██      ██          ██        ██         ██     ██    ██  ██        ██    ██  ██        ██       ",
+                "    ██     ██    ██    ██      ███    █    ██        ██         ██     ███  ███  ███    █  ██    ██   ██    █  ███    █ ",
+                "  ██████   ██    ██    █████    ███████    █████     █████   ████████   ███████   ███████  ██    ██   ███████   ███████ ",
+                "  ██████   ██    ██     ████     █████      ████      ████   ████████    ███ ██    █████   ██    ██     ████     █████  ",
+                "                                                                        █    ██                                         ",
+                "                                                                        ██████                                          ",
+                "                                                                         ████                                           "
+            ],
+            mobile: [
+"                                                            ", 
+"  ██████                                 ████      ████     ", 
+"  ██████               ██                ████      ████     ", 
+"    ██                 ██                  ██        ██     ", 
+"    ██     ██ ████   ███████     ████      ██        ██     ", 
+"    ██     ███████   ███████    ██████     ██        ██     ", 
+"    ██     ███   ██    ██      ██    ██    ██        ██     ", 
+"    ██     ██    ██    ██      ████████    ██        ██     ", 
+"    ██     ██    ██    ██      ████████    ██        ██     ", 
+"    ██     ██    ██    ██      ██          ██        ██     ", 
+"    ██     ██    ██    ██      ███    █    ██        ██     ", 
+"  ██████   ██    ██    █████    ███████    █████     █████  ", 
+"  ██████   ██    ██     ████     █████      ████      ████  ", 
+"                                                            ", 
+"                                                            ", 
+"                                                            ", 
+"    ██                                                      ",
+"    ██                                                      ",
+"    ██                                                      ",
+"                                                            ",
+"  ████       ███ ██    ████    ██ ████      ████     ████   ",
+"  ████      ███████   ██████   ███████    ███████   ██████  ",
+"    ██     ███  ███  ██    ██  ███   ██   ██    █  ██    ██ ",
+"    ██     ██    ██  ████████  ██    ██  ██        ████████ ",
+"    ██     ██    ██  ████████  ██    ██  ██        ████████ ",
+"    ██     ██    ██  ██        ██    ██  ██        ██       ",
+"    ██     ███  ███  ███    █  ██    ██   ██    █  ███    █ ",
+" ████████   ███████   ███████  ██    ██   ███████   ███████ ",
+" ████████    ███ ██    █████   ██    ██     ████     █████  ",
+"            █    ██                                         ",
+"            ██████                                          ",
+"             ████                                           "
+            ]
+        };
+
+        // Helper to pick pattern based on screen width
+        function getIntelligencePattern() {
+            // You can adjust the threshold as needed
+            return window.innerWidth < 600 ? INTELLIGENCE_PATTERNS.mobile : INTELLIGENCE_PATTERNS.desktop;
+        }
+        
+        function resizeCanvas() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            canvas.width = window.innerWidth * dpr;
+            canvas.height = window.innerHeight * dpr;
+            canvas.style.width = window.innerWidth + 'px';
+            canvas.style.height = window.innerHeight + 'px';
+            
+            ctx.scale(dpr, dpr);
+            
+            const newGridWidth = Math.floor(window.innerWidth / CELL_SIZE);
+            const newGridHeight = Math.floor(window.innerHeight / CELL_SIZE);
+            
+            // Only create new grids if dimensions actually changed
+            if (newGridWidth !== GRID_WIDTH || newGridHeight !== GRID_HEIGHT) {
+                const oldGridWidth = GRID_WIDTH || 0;
+                const oldGridHeight = GRID_HEIGHT || 0;
+                
+                GRID_WIDTH = newGridWidth;
+                GRID_HEIGHT = newGridHeight;
+                
+                const newGrid = createGrid();
+                const newNextGrid = createGrid();
+                
+                if (grid && grid.length > 0 && grid[0].length > 0) {
+                    // Calculate offsets to keep content centered
+                    const offsetX = Math.floor((newGridWidth - oldGridWidth) / 2);
+                    const offsetY = Math.floor((newGridHeight - oldGridHeight) / 2);
+                    
+                    // Copy old grid content to new grid with centering
+                    for (let y = 0; y < oldGridHeight; y++) {
+                        for (let x = 0; x < oldGridWidth; x++) {
+                            const newX = x + offsetX;
+                            const newY = y + offsetY;
+                            
+                            if (newX >= 0 && newX < GRID_WIDTH && 
+                                newY >= 0 && newY < GRID_HEIGHT &&
+                                grid[y] && grid[y][x]) {
+                                newGrid[newY][newX] = grid[y][x];
+                            }
+                        }
+                    }
+                }
+                
+                grid = newGrid;
+                nextGrid = newNextGrid;
+            }
+            
+            drawGrid();
+        }
+        
+        function createGrid() {
+            if (!GRID_WIDTH || !GRID_HEIGHT || GRID_WIDTH <= 0 || GRID_HEIGHT <= 0) {
+                return [];
+            }
+            return Array(GRID_HEIGHT).fill(null).map(() => Array(GRID_WIDTH).fill(0));
+        }
+        
+        function drawGrid() {
+            if (!grid || !GRID_WIDTH || !GRID_HEIGHT) return;
+            
+            const styles = getComputedStyle(document.documentElement);
+            const bgColor = styles.getPropertyValue('--bg-color');
+            const activeColor = styles.getPropertyValue('--cell-active');
+            const gridColor = styles.getPropertyValue('--grid-color');
+            
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+            
+            // Draw grid lines
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 0.5;
+            
+            for (let x = 0; x <= GRID_WIDTH; x++) {
+                ctx.beginPath();
+                ctx.moveTo(x * CELL_SIZE, 0);
+                ctx.lineTo(x * CELL_SIZE, GRID_HEIGHT * CELL_SIZE);
+                ctx.stroke();
+            }
+            
+            for (let y = 0; y <= GRID_HEIGHT; y++) {
+                ctx.beginPath();
+                ctx.moveTo(0, y * CELL_SIZE);
+                ctx.lineTo(GRID_WIDTH * CELL_SIZE, y * CELL_SIZE);
+                ctx.stroke();
+            }
+            
+            // Draw cells
+            for (let y = 0; y < GRID_HEIGHT && y < grid.length; y++) {
+                for (let x = 0; x < GRID_WIDTH && x < grid[y].length; x++) {
+                    if (grid[y][x]) {
+                        ctx.fillStyle = activeColor;
+                        ctx.fillRect(x * CELL_SIZE + 1, y * CELL_SIZE + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                    }
+                }
+            }
+        }
+        
+        function countNeighbors(x, y) {
+            if (!grid || !grid.length) return 0;
+            
+            let count = 0;
+            for (let dy = -1; dy <= 1; dy++) {
+                for (let dx = -1; dx <= 1; dx++) {
+                    if (dx === 0 && dy === 0) continue;
+                    const nx = (x + dx + GRID_WIDTH) % GRID_WIDTH;
+                    const ny = (y + dy + GRID_HEIGHT) % GRID_HEIGHT;
+                    if (grid[ny] && grid[ny][nx]) {
+                        count += grid[ny][nx];
+                    }
+                }
+            }
+            return count;
+        }
+        
+        function updateGrid() {
+            if (!grid || !nextGrid || !GRID_WIDTH || !GRID_HEIGHT) return;
+            
+            for (let y = 0; y < GRID_HEIGHT; y++) {
+                for (let x = 0; x < GRID_WIDTH; x++) {
+                    if (!grid[y] || !nextGrid[y]) continue;
+                    
+                    const neighbors = countNeighbors(x, y);
+                    const alive = grid[y][x];
+                    
+                    if (alive && (neighbors === 2 || neighbors === 3)) {
+                        nextGrid[y][x] = 1;
+                    } else if (!alive && neighbors === 3) {
+                        nextGrid[y][x] = 1;
+                    } else {
+                        nextGrid[y][x] = 0;
+                    }
+                }
+            }
+            
+            [grid, nextGrid] = [nextGrid, grid];
+            generation++;
+        }
+        
+        function gameLoop(currentTime) {
+            if (currentTime - lastTime >= updateInterval) {
+                updateGrid();
+                drawGrid();
+                lastTime = currentTime;
+            }
+            
+            if (isPlaying) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        function clearGrid() {
+            grid = createGrid();
+            generation = 0;
+            drawGrid();
+        }
+        
+        function drawIntelligence() {
+            clearGrid();
+            if (!grid || !GRID_WIDTH || !GRID_HEIGHT) return;
+            const pattern = getIntelligencePattern();
+            // Infer pattern height and width
+            const patternHeight = pattern.length;
+            let patternWidth = 0;
+            // Find the actual width of the pattern (rightmost non-space character)
+            for (let y = 0; y < patternHeight; y++) {
+                const row = pattern[y];
+                for (let x = row.length - 1; x >= 0; x--) {
+                    if (row[x] !== ' ') {
+                        patternWidth = Math.max(patternWidth, x + 1);
+                    }
+                }
+            }
+            // Center based on actual content width
+            const startX = Math.floor((GRID_WIDTH - patternWidth) / 2);
+            const startY = Math.floor((GRID_HEIGHT - patternHeight) / 2);
+            for (let y = 0; y < patternHeight; y++) {
+                const row = pattern[y];
+                for (let x = 0; x < row.length; x++) {
+                    const gridX = startX + x;
+                    const gridY = startY + y;
+                    if (gridX >= 0 && gridX < GRID_WIDTH && 
+                        gridY >= 0 && gridY < GRID_HEIGHT && 
+                        grid[gridY] && row[x] !== ' ') {
+                        grid[gridY][gridX] = 1;
+                    }
+                }
+            }
+            generation = 0;
+            drawGrid();
+        }
+        
+        function getCoordinates(e) {
+            const rect = canvas.getBoundingClientRect();
+            let x, y;
+            
+            if (e.touches) {
+                x = e.touches[0].clientX - rect.left;
+                y = e.touches[0].clientY - rect.top;
+            } else {
+                x = e.clientX - rect.left;
+                y = e.clientY - rect.top;
+            }
+            
+            const gridX = Math.floor(x / CELL_SIZE);
+            const gridY = Math.floor(y / CELL_SIZE);
+            
+            return {
+                x: gridX,
+                y: gridY
+            };
+        }
+        
+        let lastDrawnX = -1;
+        let lastDrawnY = -1;
+        
+        function drawLine(x0, y0, x1, y1) {
+            // Bresenham's line algorithm to fill gaps
+            const dx = Math.abs(x1 - x0);
+            const dy = Math.abs(y1 - y0);
+            const sx = x0 < x1 ? 1 : -1;
+            const sy = y0 < y1 ? 1 : -1;
+            let err = dx - dy;
+            let x = x0;
+            let y = y0;
+            
+            while (true) {
+                setCell(x, y);
+                
+                if (x === x1 && y === y1) break;
+                
+                const e2 = 2 * err;
+                if (e2 > -dy) {
+                    err -= dy;
+                    x += sx;
+                }
+                if (e2 < dx) {
+                    err += dx;
+                    y += sy;
+                }
+            }
+        }
+        
+        function setCell(x, y) {
+            if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT && grid && grid[y]) {
+                grid[y][x] = 1;
+                drawGrid();
+            }
+        }
+        
+        // Mouse events
+        canvas.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            setCell(coords.x, coords.y);
+            lastDrawnX = coords.x;
+            lastDrawnY = coords.y;
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDrawing) {
+                e.preventDefault();
+                const coords = getCoordinates(e);
+                
+                // Draw a line from last position to current position
+                if (lastDrawnX !== -1 && lastDrawnY !== -1) {
+                    drawLine(lastDrawnX, lastDrawnY, coords.x, coords.y);
+                } else {
+                    setCell(coords.x, coords.y);
+                }
+                
+                lastDrawnX = coords.x;
+                lastDrawnY = coords.y;
+            }
+        });
+        
+        canvas.addEventListener('mouseup', (e) => {
+            e.preventDefault();
+            isDrawing = false;
+            lastDrawnX = -1;
+            lastDrawnY = -1;
+        });
+        
+        canvas.addEventListener('mouseleave', () => {
+            isDrawing = false;
+            lastDrawnX = -1;
+            lastDrawnY = -1;
+        });
+        
+        // Touch events
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDrawing = true;
+            const coords = getCoordinates(e);
+            setCell(coords.x, coords.y);
+            lastDrawnX = coords.x;
+            lastDrawnY = coords.y;
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            if (isDrawing) {
+                e.preventDefault();
+                const coords = getCoordinates(e);
+                
+                // Draw a line from last position to current position
+                if (lastDrawnX !== -1 && lastDrawnY !== -1) {
+                    drawLine(lastDrawnX, lastDrawnY, coords.x, coords.y);
+                } else {
+                    setCell(coords.x, coords.y);
+                }
+                
+                lastDrawnX = coords.x;
+                lastDrawnY = coords.y;
+            }
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isDrawing = false;
+            lastDrawnX = -1;
+            lastDrawnY = -1;
+        });
+        
+        // Initialize
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        drawIntelligence();
+        
+        // Wait for page to be fully loaded and visible before autoplay
+        let hasStarted = false;
+        
+        function startGameWhenReady() {
+            // Start only when page fully loaded AND tab visible
+            if (hasStarted) return;
+            if (document.readyState === 'complete' && document.visibilityState === 'visible') {
+                hasStarted = true; // prevent multiple timers
+                setTimeout(() => {
+                    lastTime = 0;
+                    gameLoop(0);
+                }, 1000);
+            }
+        }
+        
+        // Try to start when various conditions are met
+        window.addEventListener('load', () => {
+            console.log('Window load event fired');
+            startGameWhenReady();
+        });
+        
+        document.addEventListener('visibilitychange', () => {
+            console.log('Visibility change event fired');
+            startGameWhenReady();
+        });
+        
+        window.addEventListener('focus', () => {
+            console.log('Window focus event fired');
+            startGameWhenReady();
+        });
+        
+        // Also check periodically in case events don't fire as expected
+        console.log('Starting periodic check interval');
+        const checkInterval = setInterval(() => {
+            console.log('Periodic check...');
+            startGameWhenReady();
+            if (hasStarted) {
+                console.log('Game started, clearing interval');
+                clearInterval(checkInterval);
+            }
+        }, 100);
+    </script>
+</body>
+</html>
