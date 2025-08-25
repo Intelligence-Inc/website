@@ -1,52 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Intelligence Inc. — The Missing Interpersonal Intelligence Layer</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="index,follow">
+    <link rel="canonical" href="https://intelligence.inc/">
+    <title>Assistant that evolves with you | Intelligence Inc</title>
+    <meta name="description" content="An AI assistant that stays in sync with your evolving life—tracking plans, commitments, routines, and conversations (including messages) to support long‑running, abstract goals.">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
 
-    <!-- Primary Meta -->
-    <meta name="application-name" content="Intelligence Inc." />
-    <meta name="apple-mobile-web-app-title" content="Intelligence Inc." />
-    <meta name="description" content="The missing interpersonal intelligence layer." />
-    <meta name="keywords" content="Intelligence Inc, interpersonal intelligence, AI, intelligence layer" />
-    <meta name="author" content="Intelligence Inc." />
-    <meta name="robots" content="index,follow" />
-    <link rel="canonical" href="https://intelligence.inc/" />
+    <!-- Icons and manifest -->
+    <link rel="icon" href="/assets/favicon.ico" sizes="any">
+    <link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+    <link rel="manifest" href="/site.webmanifest">
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:site_name" content="Intelligence Inc." />
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://intelligence.inc/" />
-    <meta property="og:title" content="Intelligence Inc." />
-    <meta property="og:description" content="The missing interpersonal intelligence layer." />
-    <!-- TODO: Replace og:image with actual hosted image -->
-    <!-- <meta property="og:image" content="https://intelligence.inc/og-image.jpg" /> -->
-    <!-- <meta property="og:image:alt" content="Intelligence Inc. wordmark" /> -->
-    <meta property="og:locale" content="en_US" />
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://intelligence.inc/">
+    <meta property="og:title" content="An assistant that evolves with you">
+    <meta property="og:description" content="Goes beyond quick commands: stays in sync with the evolving details of your life—plans, commitments, context, and conversations—so it can handle long‑running, abstract goals and grow with you (messages are just one rich signal).">
+    <meta property="og:image" content="https://intelligence.inc/assets/og.jpg">
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <!-- TODO: Set twitter:site to real handle if/when available -->
-    <meta name="twitter:site" content="@IntelligenceXHQ" />
-    <meta name="twitter:title" content="Intelligence Inc." />
-    <meta name="twitter:description" content="The missing interpersonal intelligence layer." />
-    <!-- <meta name="twitter:image:alt" content="Intelligence Inc. wordmark" /> -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Assistant that evolves with you">
+    <meta name="twitter:description" content="Stays in sync with your life—plans, commitments, routines, and conversations—to support long‑running goals (messages are one input, not the whole story).">
+    <meta name="twitter:image" content="https://intelligence.inc/assets/og.jpg">
 
-    <!-- Color / Theming -->
-    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
-    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#000000" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Intelligence Inc",
+      "url": "https://intelligence.inc/",
+      "logo": "https://intelligence.inc/assets/logo.png",
+      "sameAs": [
+        "https://www.linkedin.com/company/intelligence-inc-hq",
+        "https://x.com/intelligencexhq",
+        "https://github.com/intelligence-inc"
+      ]
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Intelligence Inc",
+      "alternateName": "Intelligence",
+      "url": "https://intelligence.inc/"
+    }
+    </script>
 
-    <!-- Structured Data (JSON-LD) -->
-    <script type="application/ld+json">{
-        "@context": "https://schema.org",
-        "@type": "Organization",
-        "name": "Intelligence Inc.",
-        "url": "https://intelligence.inc/",
-        "description": "Intelligence Inc. is the missing interpersonal intelligence layer.",
-        "tagline": "The Missing Interpersonal Intelligence Layer",
-        <!-- "logo": "https://intelligence.inc/og-image.jpg" -->
-    }</script>
+    <style>
+    /* critical CSS: only what's needed to render initial viewport quickly */
+    html{scroll-behavior:smooth}
+    body{margin:0}
+    </style>
     <style>
         :root {
             --bg-color: #ffffff;
@@ -149,11 +159,33 @@
                 background: rgba(0, 0, 0, 0.3);
             }
         }
+
+        /* Accessible, visually-hidden content for screen readers & SEO */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            border: 0;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas"></canvas>
-    <div class="email"><a href="mailto:hello@intelligence.inc">hello@intelligence.inc</a></div>
+    <main id="main-content">
+        <canvas id="gameCanvas"></canvas>
+        <div class="email"><a href="mailto:hello@intelligence.inc">hello@intelligence.inc</a></div>
+        <section class="sr-only" aria-label="Product description">
+            <h1>Assistant that evolves with you</h1>
+            <p>Most assistants still echo early 2000s search: fine for atomic commands like setting a timer, brittle for open‑ended intentions such as “my parents are visiting in two months” or “I want to be a better parent.”</p>
+            <p>Real progress on those requires continuity. An assistant has to maintain a living model of your shifting plans, commitments, context, and preferences—not just answer disconnected questions.</p>
+            <p>We start by grounding in high‑signal personal traces: the way you coordinate plans, track logistics, share milestones, and negotiate commitments. Messages are one especially rich layer, but they are not the only one—routines, notes, decisions, and evolving goals also feed the model. By integrating these streams (with your control and consent), the assistant moves from reactive Q&A toward an adaptive intelligence that actually understands and grows with you.</p>
+        </section>
+    </main>
 
     <script>
         const canvas = document.getElementById('gameCanvas');

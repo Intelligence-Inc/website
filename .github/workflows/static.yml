@@ -57,6 +57,11 @@ jobs:
           echo "Original size:" $(wc -c < index.html) "bytes"
           echo "Minified size:" $(wc -c < dist/index.html) "bytes"
           head -c 300 dist/index.html | sed 's/$/\n.../'
+      - name: Copy static assets
+        run: |
+          mkdir -p dist
+          if [ -d assets ]; then cp -R assets dist/assets; fi
+          if [ -f site.webmanifest ]; then cp site.webmanifest dist/site.webmanifest; fi
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
