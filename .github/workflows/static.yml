@@ -60,8 +60,17 @@ jobs:
       - name: Copy static assets
         run: |
           mkdir -p dist
-          if [ -d assets ]; then cp -R assets dist/assets; fi
-          if [ -f site.webmanifest ]; then cp site.webmanifest dist/site.webmanifest; fi
+          # Copy root icons/images if present
+          for f in \
+            favicon.ico favicon.svg favicon-16x16.png favicon-32x32.png \
+            apple-touch-icon.png apple-touch-icon-dark.png \
+            icon-192.png icon-512.png \
+            logo.png logo-dark.png \
+            og.jpg og-dark.jpg; do
+            [ -f "$f" ] && cp "$f" dist/ || true
+          done
+          # Copy manifest
+          [ -f site.webmanifest ] && cp site.webmanifest dist/site.webmanifest || true
       - name: Setup Pages
         uses: actions/configure-pages@v5
       - name: Upload artifact
